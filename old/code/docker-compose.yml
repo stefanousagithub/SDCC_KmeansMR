@@ -1,0 +1,41 @@
+version: "3.9"
+
+services:
+  master:
+    hostname: master
+    container_name: master
+    build: 
+      context: ./
+      dockerfile: master/Dockerfile
+      args:
+        NUMMAP: ${NUMMAP} 
+        MAXITER: ${MAXITER}   
+        THRESHOLD: ${THRESHOLD}
+    stdin_open: true # docker run -i
+    tty: true        # docker run -t
+    ports:
+      - "5000:8000" # This maps port 5000 of my host to port 8000 of container
+
+  mapper:
+    hostname: mapper
+    build:
+      context: ./
+      dockerfile: mapper/Dockerfile
+    stdin_open: true # docker run -i
+    tty: true        # docker run -t
+    deploy: 
+      mode: replicated
+      replicas: ${NUMMAP} 
+    depends_on:
+      - master
+
+  reducer:
+    hostname: reducer
+    container_name: reducer
+    build:
+      context: ./
+      dockerfile: reducer/Dockerfile
+    stdin_open: true # docker run -i
+    tty: true        # docker run -t
+    depends_on:
+      - master
